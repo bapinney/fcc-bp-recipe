@@ -1,0 +1,36 @@
+$bgColor: hsl(230, 50%, 95%);
+$bgCol2: darken($bgColor, 25%);
+$titleColor: white;
+$textColor: darken($bgCol2, 40%);
+
+body {
+    background: radial-gradient(ellipse at center, $bgColor 20%, $bgCol2 100%);
+    background-attachment: fixed;
+    color: $titleColor;
+    font-family: "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif; 
+    font-weight: 300;
+}
+
+.header_title {
+    font-size: 48px;
+    letter-spacing: .15em;
+    text-align: center;
+    text-shadow: 2px 2px 2px black;
+}
+
+.recipebox {
+    background-color: $bgColor;
+    border-radius: 5px;
+    box-shadow: 2px 2px 2px black;
+    color: $textColor;
+    margin: auto;
+    min-width: 300px;
+    max-width: 600px;
+    padding: 5px;
+}
+
+.spoon {
+    color: adjust-hue($bgColor, -185);
+    margin-right: 6px;
+    transform: rotate(15deg);
+}

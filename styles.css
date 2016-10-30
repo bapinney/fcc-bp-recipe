@@ -1,0 +1,33 @@
+/* line 6, /Applications/mampstack-5.6.6-0/apache2/htdocs/fcc-bp-recipe/styles.scss */
+body {
+  background: radial-gradient(ellipse at center, #eceef9 20%, #8c99d9 100%);
+  background-attachment: fixed;
+  color: white;
+  font-family: "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
+  font-weight: 300; }
+
+/* line 14, /Applications/mampstack-5.6.6-0/apache2/htdocs/fcc-bp-recipe/styles.scss */
+.header_title {
+  font-size: 48px;
+  letter-spacing: .15em;
+  text-align: center;
+  text-shadow: 2px 2px 2px black; }
+
+/* line 21, /Applications/mampstack-5.6.6-0/apache2/htdocs/fcc-bp-recipe/styles.scss */
+.recipebox {
+  background-color: #eceef9;
+  border-radius: 5px;
+  box-shadow: 2px 2px 2px black;
+  color: #263373;
+  margin: auto;
+  min-width: 300px;
+  max-width: 600px;
+  padding: 5px; }
+
+/* line 32, /Applications/mampstack-5.6.6-0/apache2/htdocs/fcc-bp-recipe/styles.scss */
+.spoon {
+  color: #f9f5ec;
+  margin-right: 6px;
+  transform: rotate(15deg); }
+
+/*# sourceMappingURL=styles.css.map */
