@@ -1,3 +1,5 @@
+var ReactCSSTransitionGroup = React.addons.CSSTransitionGroup;
+
 class RecipeBox extends React.Component {
     constructor(props) {
         super(props);
@@ -6,11 +8,11 @@ class RecipeBox extends React.Component {
     
     componentWillMount() {
         console.log("Inside RecipeBox cWM...");
-        console.log("Checking if recipies exist in local storage...");
-        var recipies;
-        if (localStorage.getItem("recipies") == null) {
-            console.log("No recipies in local storage... creating initial recipies...");
-            recipies = 
+        console.log("Checking if recipes exist in local storage...");
+        var recipes;
+        if (localStorage.getItem("recipes") == null) {
+            console.log("No recipes in local storage... creating initial recipes...");
+            recipes = 
                 [{name: "Club Sandwich",
                   ingredients: ["bread", "lettuce", "turkey", "ham", "bacon"]},
                  {name: "Chicken Soft Tacos",
@@ -19,24 +21,24 @@ class RecipeBox extends React.Component {
                   ingredients: ["sugar", "spice", "everything nice", "chemical x"]}
                  ];
             console.log("before");
-            console.dir(recipies);
-            localStorage.setItem("recipies", JSON.stringify(recipies));
+            console.dir(recipes);
+            localStorage.setItem("recipes", JSON.stringify(recipes));
             console.log("after");
-            var foo = JSON.parse(localStorage.getItem("recipies"));
+            var foo = JSON.parse(localStorage.getItem("recipes"));
             console.dir(foo);
         }
         else {
-            console.log("Initializing recipies with those in local storage...");
-            recipies = JSON.parse(localStorage.getItem("recipies"));
+            console.log("Initializing recipes with those in local storage...");
+            recipes = JSON.parse(localStorage.getItem("recipes"));
         }
         var rlOutput = [];
-        console.log("Here is recipies");
-        console.dir(recipies);
-        for (var i=0; i<recipies.length; i++) {
+        console.log("Here is recipes");
+        console.dir(recipes);
+        for (var i=0; i<recipes.length; i++) {
             console.log(`At i ${i}`);
-            rlOutput.push((<Recipe key={i.toString()} recipie={recipies[i]} tabIndex="0">{recipies[i]["name"]}</Recipe>));
+            rlOutput.push((<Recipe key={i.toString()} recipe={recipes[i]} tabIndex="0">{recipes[i]["name"]}</Recipe>));
         }
-        this.setState({"recipiesList": rlOutput});
+        this.setState({"recipesList": rlOutput});
     }
     
     render() {
@@ -44,7 +46,7 @@ class RecipeBox extends React.Component {
         console.dir(this.state);
         return (
             <div className="recipebox">
-                {this.state.recipiesList}
+                {this.state.recipesList}
             </div>
         )
     }
@@ -60,14 +62,22 @@ class Recipe extends React.Component {
     
     componentWillMount() {
         console.log("Inside Recipe cWM...");
-        this.setState({ingredientsList: null});
         console.dir(this);
+        this.setState({showIngredientsList: false});
     }
     
     render() {
-        return (<div onClick={this.toggleIngredients.bind(this)} onKeyPress={this.handleKeyPress.bind(this)} tabIndex="0">{"Recipie for " + this.props.recipie.name}
-        {this.state.ingredientsList}
-        </div>)
+        return (
+            <div className="recipe">
+                <div className="recipe-title" onClick={this.toggleIngredients.bind(this)} onKeyPress={this.handleKeyPress.bind(this)} tabIndex="0">{"Recipe for " + this.props.recipe.name}</div>
+                <ReactCSSTransitionGroup 
+                   transitionName = "recipe"
+                   transitionEnterTimeout={250}
+                   transitionLeaveTimeout={250}>
+                    { this.state.showIngredientsList && <IngredientsList recipeName={this.props.recipe.name} ingredients={this.props.recipe.ingredients} /> }
+                </ReactCSSTransitionGroup>
+            </div>
+        )
     }
     
     handleKeyPress(e) {
@@ -77,7 +87,7 @@ class Recipe extends React.Component {
     }
     
     toggleIngredients(e) {
-        if (this.state.ingredientsList == null) {
+        if (!this.state.showIngredientsList) {
             this.showIngredients(e);
         }
         else {
@@ -86,25 +96,46 @@ class Recipe extends React.Component {
     }
     
     hideIngredients(e) {
-        console.log("hide!");
-        this.setState({ingredientsList: null});
+        this.setState({showIngredientsList: false});
     }
     
     showIngredients(e) {
-        console.log("show Ings called");
-        console.dir(e.target);
-        console.dir(this);    
-        console.dir(this.refs);
-        var rNode = ReactDOM.findDOMNode(this);
-        console.dir(rNode);
-        var ingredients = <IngredientsList ingredients={this.props.recipie.ingredients}></IngredientsList>;
-        this.setState({ingredientsList: ingredients});
+        this.setState({showIngredientsList: true});
     }
 }
 
 class IngredientsList extends React.Component {
-    render() {
-        return (<div>ingredients list!!!</div>)
+    
+    constructor(props) {
+        super(props);
+    }
+    
+    componentWillMount() {
+        console.log("inside iL CWM...");
+        console.dir(this);
+    }
+    
+    render() {        
+        var ingredients = this.props.ingredients.map(function(item, i, arr) {
+            return (
+                <li key={i} className="ingredients-item">{item}</li>
+            )
+        })
+        return (
+            <div className="ingredients-list">
+                <ul>{ingredients}</ul>
+                <button accessKey="e" onClick={() => { this.showEditModal(this.props)}}><i className="fa fa-edit"></i><u>E</u>dit</button>
+            </div>
+        )
+    }
+    
+    showEditModal() {
+        console.dir(this);
+        console.log("Edit called");
+        $('#editModal').modal({show: true});
+        console.dir(this.props);
+        $('#recipe-edit')[0].value = this.props.recipeName;
+        $('#ingredients-edit')[0].value = this.props.ingredients.join(", ");
     }
 }
 
