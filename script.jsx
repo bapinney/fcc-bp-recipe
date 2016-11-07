@@ -36,19 +36,64 @@ class RecipeBox extends React.Component {
         console.dir(recipes);
         for (var i=0; i<recipes.length; i++) {
             console.log(`At i ${i}`);
+            recipes[i].key = i;
             rlOutput.push((<Recipe key={i.toString()} recipe={recipes[i]} tabIndex="0">{recipes[i]["name"]}</Recipe>));
         }
+        this.recipes = recipes;
         this.setState({"recipesList": rlOutput});
     }
     
     render() {
         console.dir("At render");
         console.dir(this.state);
+        console.dir(this.recipes);
+        var recipes = this.recipes; //'this' is not available in return
         return (
-            <div className="recipebox">
-                {this.state.recipesList}
+            <div ref="recipeBox">
+                <div className="recipebox">
+                    {recipes.map(function(name, index) {
+                        return (<Recipe key={index} ref={"recipe-" + index} recipe={recipes[index]} tabIndex="0">{recipes[index]["name"]}</Recipe>);
+                    })}
+                </div>
+                <div className="modal fade" id="editModal" role="dialog" tabIndex="-1" role="dialog">
+                    <div className="modal-dialog" role="document">
+                        <div className="modal-content">
+                            <div className="modal-header">
+                                <button type="button" className="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span>
+                                </button>
+                                <h4 className="modal-title">Edit Recipe</h4>
+                            </div>
+                            <div className="modal-body">
+                                <input type="text" id="recipe-edit"></input>
+                                <textarea id="ingredients-edit" rows="3" cols="70"></textarea>
+                                <div className="tip">Separate ingredients with a comma</div>
+                            </div>
+                            <div className="modal-footer">
+                                <button type="button" className="btn btn-default" data-dismiss="modal"><u>C</u>lose</button>
+                                <button type="button" id="recipe-save" className="btn btn-primary" onClick={() => {this.save()}}><u>S</u>ave changes</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         )
+    }
+    
+    save() {
+        console.log("RB save called!");
+        console.log("Searching for recipe key...");
+        if (typeof Number($('#recipe-edit')[0].dataset.recipeKey) == "number" &&
+            typeof $('#recipe-edit')[0].dataset.recipeKey == "string") {
+            var recipeKey = Number($('#recipe-edit')[0].dataset.recipeKey);;
+            console.dir(this.refs);
+            this.state.recipesList[recipeKey].props.recipe.name = "foo";
+            this.forceUpdate();
+        }
+    }
+    
+    updateState() {
+        console.log("Update state called!");
+        console.dir(this.state);
     }
 }
 
@@ -74,7 +119,7 @@ class Recipe extends React.Component {
                    transitionName = "recipe"
                    transitionEnterTimeout={250}
                    transitionLeaveTimeout={250}>
-                    { this.state.showIngredientsList && <IngredientsList recipeName={this.props.recipe.name} ingredients={this.props.recipe.ingredients} /> }
+                    { this.state.showIngredientsList && <IngredientsList recipeName={this.props.recipe.name} recipeKey={this.props.recipe.key} ingredients={this.props.recipe.ingredients} /> }
                 </ReactCSSTransitionGroup>
             </div>
         )
@@ -110,11 +155,6 @@ class IngredientsList extends React.Component {
         super(props);
     }
     
-    componentWillMount() {
-        console.log("inside iL CWM...");
-        console.dir(this);
-    }
-    
     render() {        
         var ingredients = this.props.ingredients.map(function(item, i, arr) {
             return (
@@ -129,12 +169,17 @@ class IngredientsList extends React.Component {
         )
     }
     
+    recipeSave() {
+        console.log("rsave called!");
+    }
+    
     showEditModal() {
         console.dir(this);
         console.log("Edit called");
         $('#editModal').modal({show: true});
         console.dir(this.props);
         $('#recipe-edit')[0].value = this.props.recipeName;
+        $('#recipe-edit')[0].dataset.recipeKey = this.props.recipeKey;
         $('#ingredients-edit')[0].value = this.props.ingredients.join(", ");
     }
 }
