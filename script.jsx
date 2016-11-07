@@ -69,8 +69,8 @@ class RecipeBox extends React.Component {
                                 <div className="tip">Separate ingredients with a comma</div>
                             </div>
                             <div className="modal-footer">
-                                <button type="button" className="btn btn-default" data-dismiss="modal"><u>C</u>lose</button>
-                                <button type="button" id="recipe-save" className="btn btn-primary" onClick={() => {this.save()}}><u>S</u>ave changes</button>
+                                <button accessKey="c" type="button" className="btn btn-default" data-dismiss="modal"><u>C</u>lose</button>
+                                <button accessKey="s" type="button" id="recipe-save" className="btn btn-primary" onClick={() => {this.save()}}><u>S</u>ave changes</button>
                             </div>
                         </div>
                     </div>
@@ -84,14 +84,22 @@ class RecipeBox extends React.Component {
         console.log("Searching for recipe key...");
         if (typeof Number($('#recipe-edit')[0].dataset.recipeKey) == "number" &&
             typeof $('#recipe-edit')[0].dataset.recipeKey == "string") {
-            var recipeKey = Number($('#recipe-edit')[0].dataset.recipeKey);;
-            console.dir(this.refs);
-            this.state.recipesList[recipeKey].props.recipe.name = "foo";
-            this.forceUpdate();
+            var recipeKey = Number($('#recipe-edit')[0].dataset.recipeKey);
+            
+            var recipesList = this.state.recipesList;
+            recipesList[recipeKey].props.recipe.name = $("#recipe-edit")[0].value;
+            
+            var ingredients = $("#ingredients-edit")[0].value.split(",");
+            ingredients = ingredients.map(Function.prototype.call, String.prototype.trim);
+            recipesList[recipeKey].props.recipe.ingredients = ingredients;
+            
+            this.setState({recipesList: recipesList});
+            console.dir(this.state);
         }
+        $('#editModal').modal("hide");
     }
     
-    updateState() {
+    componentDidUpdate() {
         console.log("Update state called!");
         console.dir(this.state);
     }
@@ -176,6 +184,10 @@ class IngredientsList extends React.Component {
     showEditModal() {
         console.dir(this);
         console.log("Edit called");
+        $('#editModal').on('shown.bs.modal', function() {
+            console.log("modal shown");
+            $('#recipe-edit').focus();
+        });
         $('#editModal').modal({show: true});
         console.dir(this.props);
         $('#recipe-edit')[0].value = this.props.recipeName;
