@@ -1,12 +1,18 @@
-$bgColor: hsl(230, 50%, 95%);
+$bgColor: hsl(230, 20%, 95%);
 $bgCol2: darken($bgColor, 25%);
-$buttonBgColor: hsl(hue($bgColor), 10%, 98%);
-$buttonBordBg: hsl(hue($bgColor), 10%, 50%);
+$buttonBgColor: hsl(hue($bgColor), 24%, 88%);
+$buttonBordBg: hsl(hue($bgColor), 24%, 80%);
 $titleColor: white;
 $textColor: darken($bgCol2, 40%);
+$ingListPaperColor: hsl(43, 70%, 17%);
+
+@mixin box-shadow($string) {
+    box-shadow: $string;
+}
 
 body {
-    background: radial-gradient(ellipse at center, $bgColor 20%, $bgCol2 100%);
+    background-image: url("http://i.imgur.com/RxilMAB.jpg"),
+        radial-gradient(ellipse at center, $bgColor 20%, $bgCol2 100%);
     background-attachment: fixed;
     color: $titleColor;
     font-family: "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif; 
@@ -15,48 +21,177 @@ body {
 
 button {
     background-color: $buttonBgColor;
-    border-color: hsl(hue($bgColor), 20%, 80%);
+    border-color: hsl(hue($bgColor), 20%, 95%);
     border-radius: 10px;
     color: $textColor;
+    margin-left: 5px;
+}
+
+#add_button {
+    background-color: hsl(hue($bgColor), saturation($bgCol2), lightness($bgCol2));
+    border-color: hsl(hue($bgColor), saturation($bgColor), lightness($bgColor));
+    border-radius: 50%;
+    box-shadow: 0px 2px 4px 3px black;
+    font-size: 1.5em;
+    outline: none;
+    position: absolute;
+    text-shadow: 2px 2px 2px black;
+    transition: all 500ms cubic-bezier(0.23, 1, 0.32, 1);
+    top: -25px;
+    right: -25px;
+    width: 50px;
+    height: 50px;
+    z-index: 2;
+}
+
+#add_button:focus {
+    background-color: hsl(120, 70%, lightness($bgCol2));
+    border: 2px solid hsl(70, 100%, 50%);
+}
+
+#add_button:hover {
+    box-shadow: 0px 0px 0px 0px black;
+    text-shadow: 0px 0px 0px black;
+}
+
+.delete-btn {
+    background-color: hsl(0, saturation($buttonBgColor), lightness($buttonBgColor));
+    border-color: hsl(0, saturation($buttonBordBg), lightness($buttonBordBg));
+    border-radius: 10px;
+    color: hsl(0, saturation($textColor), lightness($textColor));
+    transition: all 500ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.delete-btn:hover {
+    background-color: hsl(0, saturation($buttonBgColor) + 10%, lightness($buttonBgColor) - 10%);
+    border-color: hsl(0, saturation($buttonBordBg) + 10%, lightness($buttonBordBg) - 10%);
+    border-radius: 10px;
+    color: hsl(0, saturation($textColor), lightness($textColor));
+}
+
+.edit-btn {
+    background-color: hsl(120, saturation($buttonBgColor), lightness($buttonBgColor));
+    border-color: hsl(120, saturation($buttonBordBg), lightness($buttonBordBg));
+    border-radius: 10px;
+    color: hsl(120, saturation($textColor), lightness($textColor));
+    transition: all 500ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.edit-btn:hover {
+    background-color: hsl(120, saturation($buttonBgColor) + 10%, lightness($buttonBgColor) - 10%);
+    border-color: hsl(120, saturation($buttonBordBg) + 10%, lightness($buttonBordBg) - 10%);
+    border-radius: 10px;
+    color: hsl(120, saturation($textColor), lightness($textColor));
 }
 
 .header_title {
     font-size: 48px;
     letter-spacing: .15em;
+    margin-bottom: 15px;
     text-align: center;
     text-shadow: 2px 2px 2px black;
 }
 
+.ingredients-item {
+    cursor: pointer;
+}
+
+.ingredients-item:active, .ingredients-item:focus {
+    text-decoration: underline;
+    border-color: hsla(hue($bgColor), saturation($bgColor) + 30%, 80%, 1);
+    outline: none;
+}
+
+//You have to store the arguments as a variable for the mixin to work
+$il-box-shadow: (inset 2px 2px 45px 5px rgba(0,0,0,.5), inset 0px 0px 12px 2px hsla(hue($ingListPaperColor), 76%, 95%, .1));
 .ingredients-list {
     background-color: #FFFEFC;
-    border-radius: 5px;
+    border-radius: 15px;
+    @include box-shadow($il-box-shadow);
     overflow: hidden;
+    padding: 15px 5px 25px 10px;
+}
+
+.ingredients-list button {
+    box-shadow: -2px 2px 4px .1px black;
+    margin: 0px 5px 0px 10px;
+}
+
+.ingredients-list li:hover {
+    text-decoration: underline;
+}
+
+.ingredients-list li {
+    text-shadow: 1px 1px 1px rgba(0,0,0,.3);
 }
 
 .ingredients-list ul {
+    transform: rotateZ(-1.8deg);
     list-style: none;
+    margin-bottom: 25px;
+    padding-left: 20px;
 }
 
-.ingredients-list ul li:before {
-    content: '\25A1';
+.ingredients-list ul li.checked:before {
+    content: '\f046';
+    display: inline-block;
+    font-family: 'FontAwesome';
     font-size: 18px;
-    margin-right: 4px
+    margin-right: 4px;
+    width: 15px;
+}
+
+.ingredients-list ul li.unchecked:before {
+    content: '\f096';
+    display: inline-block;
+    font-family: 'FontAwesome';
+    font-size: 18px;
+    margin-right: 4px;
+    width: 15px;
 }
 
 .ingredients-list ul li {
+    border: 2px ridge hsla(hue($bgColor), saturation($bgColor) + 30%, 80%, 0);
+    border-radius: 15px;
+    color: hsl(hue($bgColor), 39%, 39%);
     font-family: 'Pacifico', cursive;
-    font-size: 14px;
+    font-size: 20px;
+    padding-left: 15px;
+    width: 85%;
+}
+
+.ingredients-list ul li:hover {
+    color: hsl(hue($bgColor), 39%, 39%);
+    font-family: 'Pacifico', cursive;
+    font-size: 20px;
 }
 
 .modal-title, .modal-body {
     color: $textColor;
 }
 
+.recipe {
+    border: 2px inset hsl(hue($bgColor), saturation($bgColor), lightness($bgColor) - 30);
+    border-radius: 15px;
+    margin-bottom: 4px;
+    overflow: hidden;
+    padding: 2px 0px 0px 10px;
+    transition: 250ms background-color cubic-bezier(0.23,  1, 0.32, 1);
+}
+
+.recipe:hover, .recipe:focus {
+    background-color: hsl(hue($bgColor), saturation($bgColor) + 20%, 90%);
+    outline: none;
+    border: 2px inset hsl(hue($bgCol2), 100%, lightness($bgCol2));
+}
+
 .recipe-enter {
     opacity: 0;
+    height: 0%;
 }
 
 .recipe-enter.recipe-enter-active {
+    height: 100%;
     opacity: 1;
     transition: all 500ms cubic-bezier(0.23, 1, 0.32, 1);
 }
@@ -67,32 +202,20 @@ button {
 
 .recipe-leave.recipe-leave-active {
     opacity: 0;
-    transition: all 500ms cubic-bezier(0.23, 1, 0.32, 1);
+    transition: all 5500ms cubic-bezier(0.23, 1, 0.32, 1);
 }
 
-.recipe {
-    background-color: $bgColor;
-    border: 1px solid rgba(255,255,255,0);
-    transition: 1200ms background-color cubic-bezier(0.23, 1, 0.32, 1);
-}
-
-.recipe:hover, .recipe:focus {
-    background-color: hsl(hue($bgColor), saturation($bgColor),99%);
-    border: 1px dotted $bgCol2;
-    cursor: pointer;
-}
-
+$recipeBoxShad: (2px 1px 10px 4px black, inset 0px 0px 6px 2px $bgCol2);
 .recipebox {
     background-color: $bgColor;
     border-radius: 5px;
-    box-shadow: 
-        2px 2px 2px black,
-        0px 0px 3px 0px $bgCol2;
+    @include box-shadow($recipeBoxShad);
     color: $textColor;
     margin: auto;
     min-width: 300px;
     max-width: 600px;
     padding: 5px;
+    position: relative; //This is required to we can position: absolute the "add" button in the top-right corner
 }
 
 #recipe-edit {
@@ -101,7 +224,24 @@ button {
 }
 
 .recipe-title {
-    
+    border: 1px solid rgba(255,255,255,0);
+    cursor: pointer;
+    transition: background-color 2000ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+
+.recipe-title:focus {
+    font-weight: 500;
+    text-decoration: underline;
+    outline: none;;
+}
+
+
+.recipe-title:active {
+//    background-color: hsl(hue($bgColor), saturation($bgColor) + 20%, 74%);
+    outline: 1px dotted hsl(hue($bgColor), saturation($bgColor) + 20%, 70%);
+    text-decoration: underline;
+    transition: 0ms all;
 }
 
 .spoon {
