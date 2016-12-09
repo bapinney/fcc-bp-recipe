@@ -1,6 +1,11 @@
 var React = require('react');
 var ReactDOM = require('react-dom');
 
+//Used for debugging.  Remove when finished...
+window.React = React;
+window.ReactDOM = ReactDOM;
+//
+
 var RecipeBox = require('./script.jsx');
 //import RecipeBox from './script.jsx';
 
@@ -21,11 +26,11 @@ var handleKeyDown = function(e) {
         console.log("Arrow key pressed in BODY");
         if (e.which == 40) {
             console.log("Focusing on the first .recipe-title...");
-            $(".recipe-title")[0].focus();
+            $(".recipe")[0].focus();
         }
         if (e.which == 38) {
             console.log("Focusing on the last .recipe-title...");
-            $(".recipe-title")[$(".recipe-title").length - 1].focus();
+            $(".recipe")[$(".recipe").length - 1].focus();
         }
     }
 }

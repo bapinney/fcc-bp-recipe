@@ -6,8 +6,12 @@ import ReactCSSTransitionGroup from 'react-addons-css-transition-group';
 
 class RecipeBox extends React.Component {
     constructor(props) {
-        super(props);
-        console.log("inside const");
+        super(props);  /* super() allows us to refer to the class that is being extended (in this case, React.Component.)  super.functionA([args]) lets us call functionA in the the parent Object.  super([args]) calls the parent Object's constructor.  In the case of React, it assigns the arguments to 'this.props' */ 
+        
+        console.log("Inside RB const...");
+        
+        //This is required so that 'this' is available to the handleKeyDown method
+        this.handleKeyDown = this.handleKeyDown.bind(this);
     }
     
     componentWillMount() {
@@ -107,25 +111,98 @@ class RecipeBox extends React.Component {
     
     handleKeyDown(e) {
         console.log("At handle keydown");
+        console.log(e.key);
+        console.log(e.keyCode);
+        console.log(e.which);
+        console.dir(e);
+        console.dir(e.target);
+        console.dir(this);
         switch(e.which) {
-            case 38: //Up
-                //If there is another recipe to move up to...
-                if (e.target.parentNode.previousSibling !== null &&
-                    e.target.parentNode.previousSibling.dataset.hasOwnProperty("role") &&
-                    e.target.parentNode.previousSibling.dataset.role == "recipe"
-                   ) {
-                    $(e.target.parentNode.previousSibling.childNodes[0].focus());
+            case 13: //Enter    
+            case 32: //Space
+                if (e.target.dataset.hasOwnProperty("role") && e.target.dataset.role == "recipe") {
+                    var recipe = document.evaluate("div[@data-role='recipe-title']", e.target, null, XPathResult.ANY_TYPE, null).iterateNext();
+                    if (recipe !== null) {
+                        console.log("It's a recipe!");
+                        recipe.click(); //Trigger its click event handler to expand it...
+                    }
                 }
                 break;
-            case 40: //Down
-                //If there is another recipe to move down to...
-                if (e.target.parentNode.nextSibling !== null &&
-                    e.target.parentNode.nextSibling.dataset.hasOwnProperty("role") &&
-                    e.target.parentNode.nextSibling.dataset.role == "recipe"
-                   ) {
-                    $(e.target.parentNode.nextSibling.childNodes[0].focus());
+            case 38: //Up
+                if (e.target.dataset.hasOwnProperty("role")) {
+                    if (e.target.dataset.role == "recipe") { //If we are at the recipe, go up to the next one
+                        if (e.target.previousElementSibling !== null) {
+                            if ((e.target.previousElementSibling.dataset.hasOwnProperty("role") && 
+                                e.target.previousElementSibling.dataset.role == "recipe") ||
+                                e.target.previousElementSibling.id == "add_button"
+                               ) 
+                            {
+                                e.target.previousElementSibling.focus();    
+                            }
+                        }  
+                    }
+                    else if (e.target.previousElementSibling == null) {
+                        document.evaluate("//ancestor::div[@data-role='recipe']/following::div", e.target, null, XPathResult.ANY_TYPE, null).iterateNext().focus();
+                    }
+                    else if (e.target.previousElementSibling.tagName == "LI") {
+                        e.target.previousElementSibling.focus();
+                    }
                 }
+
+                else if (e.target.previousElementSibling.tagName == "BUTTON") {
+                    e.target.previousElementSibling.focus();
+                }
+                else if (e.target.previousElementSibling.tagName == "UL") {
+                    if (e.target.previousElementSibling.lastElementChild !== null) {
+                        e.target.previousElementSibling.lastElementChild.focus();
+                    }
+                }
+/*                
+                //If there is another recipe to move up to...
+                if (e.target.previousElementSibling !== null &&
+                    e.target.previousElementSibling.dataset.hasOwnProperty("role") &&
+                    e.target.previousElementSibling.dataset.role == "recipe"
+                   ) {
+                    $(e.target.previousSibling.focus());
+                }
+                */
                 
+                break;
+            case 40: //Down
+                if (e.target.dataset.hasOwnProperty("role")) {
+                    if (e.target.dataset.role == "recipe") { //If we are at the recipe, go down to the first ingredient...
+                        var firstIngredient = document.evaluate("./descendant::li", e.target, null, XPathResult.ANY_TYPE, null).iterateNext();
+                        console.dir(firstIngredient);
+                        if (firstIngredient == null) {
+                            //The recipe is not expanded, so no first ingredient is showing.  Go to the next recipe instead...
+                            if (e.target.nextElementSibling !== null) {
+                                e.target.nextElementSibling.focus();
+                            }
+                        }
+                        else {
+                            firstIngredient.focus();
+                        }
+                    } 
+                    else if (e.target.dataset.role == "ingredient") { //If we are at an ingredient...
+                        if (e.target.nextElementSibling !== null) { //...go to the next ingredient, if there is one...
+                            e.target.nextElementSibling.focus();
+                        }
+                        else { //Otherwise go to the next element of the parent (i.e., the Edit button)
+                            e.target.parentElement.nextElementSibling.focus();
+                        }
+                    }
+                }
+                else if (e.target.tagName == "BUTTON") {
+                    if (e.target.nextElementSibling !== null) {
+                        e.target.nextElementSibling.focus();
+                    }
+                    else {
+                        var nextRecipe = document.evaluate("./ancestor::div[@data-role='recipe']", e.target, null, XPathResult.ANY_TYPE, null).iterateNext().nextElementSibling;
+                        if (nextRecipe !== null) {
+                            nextRecipe.focus();
+                        }
+                    }
+                }
                 break;
         }
         //e.target.parentNode.previousSibling.focus();
@@ -219,8 +296,8 @@ class Recipe extends React.Component {
     
     render() {
         return (
-            <div className="recipe" data-role="recipe">
-                <div className="recipe-title" onClick={this.toggleIngredients.bind(this)}  onKeyPress={this.handleKeyPress.bind(this)} tabIndex="0" data-role="recipe-title">{"Recipe for " + this.props.recipe.name}</div>
+            <div className="recipe" tabIndex="0" data-role="recipe">
+                <div className="recipe-title" onClick={this.toggleIngredients.bind(this)}  onKeyPress={this.handleKeyPress.bind(this)} data-role="recipe-title">{"Recipe for " + this.props.recipe.name}</div>
                 <ReactCSSTransitionGroup 
                    transitionName = "recipe"
                    transitionEnterTimeout={250}
@@ -243,7 +320,7 @@ class Recipe extends React.Component {
     }
     
     toggleIngredients(e) {
-        console.log("At toggleIngred 222");
+        console.log("At toggleIngred");
         console.dir(e);
         console.dir(e.target);
         if (!this.state.showIngredientsList) {
@@ -266,15 +343,15 @@ class Recipe extends React.Component {
 class IngredientsList extends React.Component {
     
     constructor(props) {
-        super(props);
-        
+        super(props); //Makes the attributes in <IngredientsList> available in this.props
+    
         this.toggleCheck = this.toggleCheck.bind(this);
     }
     
     render() {
         var ingredients = [];
         for (var i=0; i < this.props.ingredients.length; i++) {
-            ingredients.push(<li key={i} className="ingredients-item unchecked" onClick={(e) => { this.toggleCheck(e)}} onKeyPress={(e) => { this.checkKeyEvent(e)}} tabIndex="0">{this.props.ingredients[i]}</li>);
+            ingredients.push(<li key={i} className="ingredients-item unchecked" onClick={(e) => { this.toggleCheck(e)}} onKeyPress={(e) => { this.checkKeyEvent(e)}} data-role="ingredient" tabIndex="0">{this.props.ingredients[i]}</li>);
         }
         
         return (
