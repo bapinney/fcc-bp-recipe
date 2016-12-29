@@ -1,9 +1,14 @@
-var gulp = require('gulp'),  //Requires the Gulp Node package
-    sass = require('gulp-sass'), // (based on node-sass)
-    babel = require('gulp-babel'),
-    sourcemaps = require('gulp-sourcemaps'),
-    livereload = require('gulp-livereload'),
-    plumber = require('gulp-plumber');
+var babel =         require('gulp-babel'),
+    babelify =      require('babelify'),
+    browserify =    require('browserify'),
+    gulp =          require('gulp'),  //Requires the Gulp Node package
+    exit =          require('gulp-exit'),
+    livereload =    require('gulp-livereload'),
+    plumber =       require('gulp-plumber'),
+    sass =          require('gulp-sass'), // (based on node-sass)
+    source =        require('vinyl-source-stream'),
+    sourcemaps =    require('gulp-sourcemaps'),
+    watchify =      require('watchify');
 
 var babelInputFile = 'script.jsx',
     cssOutputFile = 'styles.css',
@@ -11,8 +16,22 @@ var babelInputFile = 'script.jsx',
     sassInputFile = 'styles.scss';
 
 //Task name goes in .task's 1st argument.  If it is 'default', that is the task that runs when just 'gulp' is entered
-gulp.task('default', ['compileSass', 'compileBabel', 'watch'], function() {
+gulp.task('default', ['compileSass', 'browserify'], function() {
     console.log("Inside default task");
+});
+
+/* Use this to create a React-compatible bundle... */
+gulp.task('browserify', function() {
+    console.log("Running Browserify without watch...")
+    return browserify({
+        entries: ['./main.js'],
+        transform: [['babelify', {presets: ['es2015', 'react']}]], // JSX --> JavaScript
+        debug: true, // Source maps
+        cache: {}, packageCache: {}, fullPaths: true // watchify required stuff...
+    })
+    .bundle() // Create the initial bundle when starting the task
+    .pipe(source('compiled-bundle.js'))
+    .pipe(gulp.dest('./'));    
 });
 
 //Could take a min...

@@ -1,5 +1,12 @@
-import React from 'react';
-import {render} from 'react-dom';
+/* As a reminder (since I keep forgetting) ...
+    import, without braces, imports the default module being exported.
+    import, with braces, imports a specific member (e.g., function, const, etc...) of a module
+    import, with braces, and with commas inside separating each member, imports multiple members of the same module
+    import, with "as {alias}" after each member, allows naming an object that will receive the imported property
+*/
+import React        from 'react';
+import {connect}    from 'react-redux'; //Connects to the Redux store
+import {render}     from 'react-dom';
 
 //Requires react-addons-css-transition-group
 import ReactCSSTransitionGroup from 'react-addons-css-transition-group';
@@ -10,7 +17,8 @@ class RecipeBox extends React.Component {
         
         console.log("Inside RB const...");
         
-        //This is required so that 'this' is available to the handleKeyDown method
+        //This is required so that 'this' is available to the method
+        this.deleteRecipe  = this.deleteRecipe.bind(this);
         this.handleKeyDown = this.handleKeyDown.bind(this);
     }
     
@@ -35,34 +43,58 @@ class RecipeBox extends React.Component {
             recipes = JSON.parse(localStorage.getItem("bapinney_recipes"));
         }
         var rlOutput = [];
-        console.log("Here is recipes variable");
         console.dir(recipes);
         for (var i=0; i<recipes.length; i++) {
             console.log(`At i ${i}`);
             recipes[i].key = i;
-            var recipe = (<Recipe key={i.toString()} recipe={recipes[i]}>{recipes[i]["name"]}</Recipe>);
+            console.log("Here is recipes[i]...");
+            console.dir(recipes[i]);
+            var recipe = (<Recipe key={i.toString()} recipe={recipes[i]} deleteARecipe={this.deleteRecipe} />);
             rlOutput.push(recipe);
         }
-        this.recipes = recipes;
+        console.log("Here is rlOutput...");
+        console.dir(rlOutput);
         this.setState({"recipesList": rlOutput});
+    }
+    
+    focusNotify() {
+        //Used for testing.  Remove when finished...
+        //console.log("I focused.");
+    }
+    
+    //Used for when a new recipe is added, so that RecipeBox can refresh and pass a delete recipe method in the props of the new recipe
+    rbRerender(newRbList) {
+        console.log("At rbRerender");
+        var recipes = newRbList;
+        var rlOutput = [];
+        console.dir(recipes);
+        for (var i=0; i<recipes.length; i++) {
+//            debugger;
+            console.log(`At i ${i}`);
+            console.log("Here is recipes[i]...");
+            var key = recipes[i].key;
+            
+            var recipe = (<Recipe key={key} recipe={recipes[i].props.recipe} deleteARecipe={this.deleteRecipe} />);
+            rlOutput.push(recipe);
+        }
+        this.setState({"recipesList": rlOutput}); //....
+        this.render();
     }
     
     render() {
         console.dir("At render...");
-        console.dir(this.state);
-        console.dir(this.recipes);
-        var recipes = this.recipes; //'this' is not available in return
+        console.dir(this.state.recipesList);
         var rBox = this;
         
         //Note the usage of onKeyDown instead of onKeyPress.  onKeyPress only fires on _character_ keys.  Arrow keys need to use onKeyDown or onKeyUp
         
         return (
-            <div onKeyDown={this.handleKeyDown}>
+            <div autoFocus={true} onFocus={this.focusNotify} ref={(ele) => {this.recipeBox = ele; }} onKeyDown={this.handleKeyDown}>
                 <div className="recipebox">
                 <button className={"button badge"} id="add_button" onClick={() => {this.newRecipe()}} title="Add new recipe">+</button>
-                    {recipes.map(function(name, index) {
-                        return (<Recipe key={index} recipe={recipes[index]} deleteRecipe={(e) => {rBox.deleteRecipe(e)}} tabIndex="0">{recipes[index]["name"]}</Recipe>);
-                    })}
+                
+                {this.state.recipesList}
+                
                 </div>
                 <div className="modal fade" id="editModal" role="dialog" tabIndex="-1" role="dialog">
                     <div className="modal-dialog" role="document">
@@ -110,13 +142,11 @@ class RecipeBox extends React.Component {
     }
     
     handleKeyDown(e) {
+        /*
         console.log("At handle keydown");
-        console.log(e.key);
-        console.log(e.keyCode);
-        console.log(e.which);
         console.dir(e);
-        console.dir(e.target);
         console.dir(this);
+        */
         switch(e.which) {
             case 13: //Enter    
             case 32: //Space
@@ -156,23 +186,12 @@ class RecipeBox extends React.Component {
                     if (e.target.previousElementSibling.lastElementChild !== null) {
                         e.target.previousElementSibling.lastElementChild.focus();
                     }
-                }
-/*                
-                //If there is another recipe to move up to...
-                if (e.target.previousElementSibling !== null &&
-                    e.target.previousElementSibling.dataset.hasOwnProperty("role") &&
-                    e.target.previousElementSibling.dataset.role == "recipe"
-                   ) {
-                    $(e.target.previousSibling.focus());
-                }
-                */
-                
+                }                
                 break;
             case 40: //Down
                 if (e.target.dataset.hasOwnProperty("role")) {
                     if (e.target.dataset.role == "recipe") { //If we are at the recipe, go down to the first ingredient...
                         var firstIngredient = document.evaluate("./descendant::li", e.target, null, XPathResult.ANY_TYPE, null).iterateNext();
-                        console.dir(firstIngredient);
                         if (firstIngredient == null) {
                             //The recipe is not expanded, so no first ingredient is showing.  Go to the next recipe instead...
                             if (e.target.nextElementSibling !== null) {
@@ -205,17 +224,35 @@ class RecipeBox extends React.Component {
                 }
                 break;
         }
-        //e.target.parentNode.previousSibling.focus();
     }
     
     newRecipe() {
         setTimeout(function() { $("#add_button").blur() }, 1000);
         this.showAddModal(); 
     }
-    
+       
     deleteRecipe(recipeKey) {
+        //debugger;
         console.log("At rb dr");
+        console.log(recipeKey);
         console.dir(event);
+        console.dir(this);
+        console.dir(this.state);
+        var recipesList = this.state.recipesList.slice();
+        //Note: The recipekey and the index in the recipesList may not always be the same.  Therefore, we need to iterate through the recipesList to find (and confirm) the correct index for the corresponding recipekey
+        //TODO: Write for statement here...
+        var arrIndex = null;
+        for (var i=0; i < recipesList; i++) {
+            if (recipesList[i].key == recipeKey) {
+                arrIndex = recipeKey;
+            }
+        }
+        
+        console.dir(recipesList);
+        recipesList.splice(arrIndex, 1);
+        console.dir(recipesList);
+        this.setState({"recipesList": recipesList});
+        this.updateStorage(recipesList);
     }
     
     showAddModal() {
@@ -231,7 +268,6 @@ class RecipeBox extends React.Component {
     }
     
     inputUpdate() {
-        console.log("At input update");
         if ($("#new-recipe-title")[0].value.length > 0 && 
         $("#new-recipe-ingredients")[0].value.length > 0 &&
         $("#recipe-add")[0].disabled == true) {
@@ -245,8 +281,32 @@ class RecipeBox extends React.Component {
     }
     
     addRecipe() {
-        console.log("At addRecipe...");
-        console.dir(RBInstance);
+        console.dir(this.state);
+        var recipesList = this.state.recipesList.slice();
+        var newRecipeName = $("#new-recipe-title")[0].value;
+        var newRecipeIngredients = $("#new-recipe-ingredients")[0].value.split(",").map(Function.prototype.call, String.prototype.trim);  //Automatically applies trim (i.e., removes extra whitespace) in all elements in the array.  This essentially removes the spaces inbetween commas
+        
+        //debugger;
+        var key = 0;
+        for (var i=0; i <= recipesList.length; i++) {
+            if (recipesList.find(function(ele) { return ele.key == (i+1) }) == undefined) {
+                key = (i+1);
+                //debugger;
+                break;
+            }
+        }
+        
+        console.log(`Recipe key is ${key}`);
+        var recipe = {name: newRecipeName, key: key, ingredients: newRecipeIngredients};
+        console.dir(recipe);
+        var newRecipe = (<Recipe key={key} recipe={recipe} foo={123} depeteARecipe={this.deleteRecipe} />);
+        console.dir(newRecipe);
+        recipesList.push(newRecipe);
+        console.dir(recipesList);
+        this.setState({recipesList: recipesList});
+        $('#addModal').modal("hide");
+        this.updateStorage(recipesList);
+        this.rbRerender(recipesList); 
     }
     
     save() {
@@ -263,18 +323,43 @@ class RecipeBox extends React.Component {
             ingredients = ingredients.map(Function.prototype.call, String.prototype.trim);
             recipesList[recipeKey].props.recipe.ingredients = ingredients;
             
-            this.setState({recipesList: recipesList});
+            this.setState({recipesList: recipesList}, function() {
+                //KEY is in dataset -- Pick up here...
+                debugger;
+                console.dir(this);
+                console.dir(this.props);
+            }); //Add a callback to refresh the drawer??
             console.dir(this.state);
-            
+            this.render(); //Was force update...
         }
         $('#editModal').modal("hide");
     }
     
+    updateStorage(recipesList) {  //updates localStorage with what the provided recipesList..    
+        console.log("updateStorage called...");
+        console.dir(recipesList);
+        var recipes = [];
+        /*        [{name: "Club Sandwich",
+                  ingredients: ["bread", "lettuce", "turkey", "ham", "bacon"]},
+                 {name: "Chicken Soft Tacos",
+                  ingredients: ["chicken", "lettuce", "cheddar cheese", "secret sauce", "tortilla"]},
+                 {name: "Powerpuff Girls",
+                  ingredients: ["sugar", "spice", "everything nice", "chemical x"]}
+                 ]; */
+        for (var i=0; i<recipesList.length; i++) {
+            var recipe = {};
+            recipe.name = recipesList[i].props.recipe.name;
+            recipe.ingredients = recipesList[i].props.recipe.ingredients;
+            recipes.push(recipe);
+        }
+        console.log("Here is final recipes array...");
+        console.dir(recipes);
+        localStorage.setItem("bapinney_recipes", JSON.stringify(recipes));
+    }
+    
     componentDidMount() {
         console.log("RB cDM called.");
-        console.dir(this);
-        console.log(typeof this.focus);
-        //this.refs.recipeBox.focus();
+        this.recipeBox.focus();
         console.log("Component should've focused...");
     }
 }
@@ -296,13 +381,13 @@ class Recipe extends React.Component {
     
     render() {
         return (
-            <div className="recipe" tabIndex="0" data-role="recipe">
+            <div className="recipe" tabIndex="0" data-role="recipe" data-recipe-id={this.props.recipe.key}>
                 <div className="recipe-title" onClick={this.toggleIngredients.bind(this)}  onKeyPress={this.handleKeyPress.bind(this)} data-role="recipe-title">{"Recipe for " + this.props.recipe.name}</div>
                 <ReactCSSTransitionGroup 
                    transitionName = "recipe"
                    transitionEnterTimeout={250}
                    transitionLeaveTimeout={250}>
-                    { this.state.showIngredientsList && <IngredientsList recipeName={this.props.recipe.name} recipeKey={this.props.recipe.key} ingredients={this.props.recipe.ingredients} deleteRecipe={this.deleteRecipe}/> }
+                    { this.state.showIngredientsList && <IngredientsList recipeName={this.props.recipe.name} recipeKey={this.props.recipe.key} ingredients={this.props.recipe.ingredients} deleteRecipe={this.props.deleteARecipe}/> }
                 </ReactCSSTransitionGroup>
             </div>
         )
@@ -315,8 +400,9 @@ class Recipe extends React.Component {
     }
     
     deleteRecipe(key) {
-        console.log("At R dR()");
-        this.props.deleteRecipe(key);
+        //debugger;
+        console.log(`deleteRecipe called for key ${key}...`);
+        console.dir(this);
     }
     
     toggleIngredients(e) {
@@ -344,14 +430,18 @@ class IngredientsList extends React.Component {
     
     constructor(props) {
         super(props); //Makes the attributes in <IngredientsList> available in this.props
-    
+        console.dir(props);
+        if (props.hasOwnProperty("recipeName") && props.hasOwnProperty("ingredients") && Array.isArray(props.ingredients)) {
+            console.log("%cIngredientsList constructor validation OK", 'background: linear-gradient(#31D306, #145702); border: 1px solid #3E0E02; border-radius: 4px; color: white; display: block; font-size: 14px; text-shadow: 3px 3px 0 rgba(0, 0, 0, 0.6); padding-right: 10px; line-height: 20px; text-align: center; font-weight: bold');
+            this.state = {recipeName: props.recipeName, ingredients: props.ingredients, fooy: "bary"};
+        }
         this.toggleCheck = this.toggleCheck.bind(this);
     }
     
     render() {
         var ingredients = [];
-        for (var i=0; i < this.props.ingredients.length; i++) {
-            ingredients.push(<li key={i} className="ingredients-item unchecked" onClick={(e) => { this.toggleCheck(e)}} onKeyPress={(e) => { this.checkKeyEvent(e)}} data-role="ingredient" tabIndex="0">{this.props.ingredients[i]}</li>);
+        for (var i=0; i < this.state.ingredients.length; i++) {
+            ingredients.push(<li key={i} className="ingredients-item unchecked" onClick={(e) => { this.toggleCheck(e)}} onKeyPress={(e) => { this.checkKeyEvent(e)}} data-role="ingredient" tabIndex="0">{this.state.ingredients[i]}</li>);
         }
         
         return (
@@ -364,7 +454,9 @@ class IngredientsList extends React.Component {
     }
     
     deleteRecipe() {
+        //debugger;
         console.log("Inside dRec");
+        console.dir(this); //Look for this.props.deleteRecipe...
         this.props.deleteRecipe(this.props.recipeKey);
     }
     
@@ -372,6 +464,12 @@ class IngredientsList extends React.Component {
         console.dir(this);
         console.log("Edit called");
         $('#editModal').on('shown.bs.modal', function() {
+            console.log("Detaching any modal event listeners from previous instances...");
+            $("#recipe-save").off("click");
+            console.log("Attaching modal event listener for this ingredient list...");
+            $("#recipe-save").click(function() {
+                e => this.foo(); //PICK UP HERE!!!
+            });
             console.log("modal shown");
             $('#recipe-edit').focus();
         });
@@ -382,9 +480,25 @@ class IngredientsList extends React.Component {
         $('#ingredients-edit')[0].value = this.props.ingredients.join(", ");
     }
     
+    foo(e) {
+        debugger;
+        console.dir(this);
+        console.dir(e);
+        this.bar();
+        var updatedIngs = $("#recipe-edit")[0].value.split(",").map(Function.prototype.call, String.prototype.trim);
+        this.setState({ingredients: updatedIngs});
+        
+    }
+    
+    bar() {
+        debugger;
+        console.log("bar123");
+    }
+    
     checkKeyEvent(e) {
         if (e.key == " ") this.toggleCheck(e);
         if (e.key == "Enter") this.toggleCheck(e);
+        if (e.key == "s") console.dir(this.state); //Remove when finished testing...
     }
     
     toggleCheck(e) {
@@ -400,4 +514,9 @@ class IngredientsList extends React.Component {
     }
 }
 
-module.exports = RecipeBox;
+function mapStateToProps(state) {
+    return {state};
+}
+
+//module.exports = RecipeBox;
+export default connect(mapStateToProps)(RecipeBox)

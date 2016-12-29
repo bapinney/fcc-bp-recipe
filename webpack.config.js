@@ -48,13 +48,7 @@ var config = {
     
     target: "web",
 
-    plugins: [
-//        "transform-es2015-modules-commonjs",
-/*      new LiveReloadPlugin({
-            appendScriptTag: true
-        }),*/
-        //new ExtractTextPlugin("[name]-compiled.css"),
-        
+    plugins: [        
         new Webpack.ProvidePlugin({
             "React": "react"
         })
